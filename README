@@ -1,0 +1,41 @@
+pyrssreader is a small an easy rss popup notificator
+
+This is a small peace of code intended to make your life easier.
+Thanks for download it.
+
+Copyright (c) 2009 by Darío Clavijo
+open source, see LICENSE file for details
+
+-----------------------------------------------------------------------------------
+To run this you will need all the dependencies like feedparser,pynotify and urllib,PyGTk,Image
+and it uses a liferea pixmap if you have it installed you will see an icon in the nofitication if not it will not be a major problem
+
+feedparser download at : http://feedparser.org/
+pynotify: apt-get install python-notify
+PyGTk: apt-get install python-gtk2
+
+Then you can run from commandline
+
+$ python reader.py
+
+Or you can add it to your session programs
+
+Sistem->Preferences->sessions->add
+
+and add this line: python path-of-this-script/reader.py
+
+-------------------------------------------------------------------------------------
+
+Changelog:
+
+v 0.0.2 
+- Now supports images in the sites.
+- some bugfixes...
+
+-------------------------------------------------------------------------------------
+
+There is no installer yet.
+
+-------------------------------------------------------------------------------------
+
+cheers
