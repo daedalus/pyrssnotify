@@ -13,13 +13,13 @@ import pynotify
 import time
 from user import home
 #--------------------------------------------------------------------------------------------------------
-#clase principal
+#main class
 class FeedRSS():
 	def __init__(self,bloglink):
-		printdebug("cargando lista...")
+		printdebug("blog list loading...")
 		temp = self.getcachename()
 		try:
-			lista = cargar_archivo(temp)
+			lista = list_load(temp)
 		except:
 			lista = ['']
 		#try:
@@ -52,12 +52,13 @@ class FeedRSS():
 				#except:
 				else:
 					printdebug("exception handled!")
-			printdebug("salvando lista...")
-			salvar_archivo(lista,temp)
+			printdebug("blog list saving...")
+			list_save(lista,temp)
 			printdebug("ok")
 			#except:
 		else:
 			printdebug("exception at feedparser handled!...maybe connectivity was lost...")
+		time.sleep(300.0)
 
 	def getID(self,element):
 		try:
@@ -137,14 +138,18 @@ class FeedRSS():
 		return imgdata
 
 
+#--------------------------------------------------------------------------------------------------------
+# it prints out debugging text
+
 def printdebug(msg):
         pid = os.getpid()
 	fullmsg = "PID: " + str(pid)  + ", "  + msg
 	print fullmsg
 
 #---------------------------------------------------------------------------------------------------------
-#funcion para cargar un archivo de texto en una linea.		
-def cargar_archivo(archivo): 
+# it loads a text file into a variable
+
+def list_load(archivo): 
 		f = open(archivo,"r")
 		lineas = ['']
 		while True:
@@ -153,23 +158,47 @@ def cargar_archivo(archivo):
       			lineas.append(linea.replace("\n",""))
 		return lineas
 #--------------------------------------------------------------------------------------------------------
-#funcion para salvar una lista a un archivo					
-def salvar_archivo(lineas,archivo):
+# it saves the content of a variable into a text file					
+
+def list_save(lineas,archivo):
 		f = open(archivo,"w")
 		for line in lineas:
 			if (line != "" and line != "\n"): 
 				f.writelines(line + "\n")
+
+#--------------------------------------------------------------------------------------------------------
+# it tryes to fork from main process to create a child
+
+def try_fork(blog):
+	global childs
+	global maxchilds
+	if (childs <= maxchilds):
+		pid=os.fork()
+		if pid:
+			childs+=1
+			printdebug("Child: " + str(childs) + " forked: " + str(pid))
+			lm = FeedRSS(blog)
+			sys.exit(0)
+			childs-=1
+		else:
+			printdebug("Child: " + str(childs) + " failed to fork")
+	else:
+		lm = FeedRSS(blog)
+
+
 #---------------------------------------------------------------------------------------------------------
 #main loop
-blogs = cargar_archivo(home + "/blogs.list")
-while True:	
-	for blog in blogs:
-		if (blog != ''):
-			pid=os.fork()
-			if pid:
-				printdebug("Child Forked!")
-				lm = FeedRSS(blog)
-				sys.exit(0)
-			else:
-				printdebug("failed to fork a child")
-	time.sleep(300.0)
+def main_loop():
+	blogs = list_load(home + "/blogs.list")
+	while True:	
+		for blog in blogs:
+			if (blog != ''):
+				try_fork(blog)
+		# do not ever think to remove this line 
+		# it can and will hang up your computer
+		time.sleep(300.0)
+
+#---------------------------------------------------------------------------------------------------------
+childs=1
+maxchilds=10
+main_loop()
