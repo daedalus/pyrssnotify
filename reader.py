@@ -68,7 +68,7 @@ class FeedRSS():
 		return Id
 
 	def getcachename(self):
-		return home + "/.cache/pyrssnotify.list"
+		return f"{home}/.cache/pyrssnotify.list"
 	
 	def display(self,title,msg,icon):
 		n = pynotify.Notification(title,msg)
@@ -90,8 +90,8 @@ class FeedRSS():
 				break	
 			nuevo += data
 		r = re.compile('<b>http://tinyurl.com/([a-zA-Z0-9]+)</b>',re.S)
-                x = r.findall(nuevo)
-		return "http://tinyurl.com/" + x[0]
+		x = r.findall(nuevo)
+		return f"http://tinyurl.com/{x[0]}"
 
         def gettitle(self):
 		try:
@@ -102,7 +102,7 @@ class FeedRSS():
 
 	def geticonpixbuf(self,link):
 		icondata = self.url2pixbuf(link)
-		if (icondata == None):
+		if icondata is None:
 			icondata = self.url2pixbuf('file:///usr/share/liferea/pixmaps/default.png')
 		return icondata
 
@@ -126,8 +126,7 @@ class FeedRSS():
 	def url2pixbuf(self,imgurl):
 		try:
 			img_feed = None
-			img_feed = urllib.urlopen(imgurl).read()
-			if img_feed:
+			if img_feed := urllib.urlopen(imgurl).read():
 				im = Image.open(cStringIO.StringIO(img_feed)).convert("RGB")
 				imgdata = gtk.gdk.pixbuf_new_from_data(im.tostring(),gtk.gdk .COLORSPACE_RGB,False,8,im.size[0],im.size[1],3*im.size[0])
 			else:
@@ -150,21 +149,22 @@ def printdebug(msg):
 # it loads a text file into a variable
 
 def list_load(archivo): 
-		f = open(archivo,"r")
-		lineas = ['']
-		while True:
-      			linea = f.readline()
-      			if not linea: break
-      			lineas.append(linea.replace("\n",""))
-		return lineas
+	f = open(archivo,"r")
+	lineas = ['']
+	while True:
+		if linea := f.readline():
+			lineas.append(linea.replace("\n",""))
+		else:
+			break
+	return lineas
 #--------------------------------------------------------------------------------------------------------
 # it saves the content of a variable into a text file					
 
 def list_save(lineas,archivo):
-		f = open(archivo,"w")
-		for line in lineas:
-			if (line != "" and line != "\n"): 
-				f.writelines(line + "\n")
+	f = open(archivo,"w")
+	for line in lineas:
+		if line not in ["", "\n"]: 
+			f.writelines(line + "\n")
 
 #--------------------------------------------------------------------------------------------------------
 # it tryes to fork from main process to create a child
@@ -173,15 +173,14 @@ def try_fork(blog):
 	global childs
 	global maxchilds
 	if (childs <= maxchilds):
-		pid=os.fork()
-		if pid:
+		if pid := os.fork():
 			childs+=1
-			printdebug("Child: " + str(childs) + " forked: " + str(pid))
+			printdebug(f"Child: {childs} forked: {str(pid)}")
 			lm = FeedRSS(blog)
 			sys.exit(0)
 			childs-=1
 		else:
-			printdebug("Child: " + str(childs) + " failed to fork")
+			printdebug(f"Child: {str(childs)} failed to fork")
 	else:
 		lm = FeedRSS(blog)
 
@@ -189,7 +188,7 @@ def try_fork(blog):
 #---------------------------------------------------------------------------------------------------------
 #main loop
 def main_loop():
-	blogs = list_load(home + "/blogs.list")
+	blogs = list_load(f"{home}/blogs.list")
 	while True:	
 		for blog in blogs:
 			if (blog != ''):
